@@ -1,26 +1,1347 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Survival Vault — Survival Game Companion</title>
-<style>
-:root{--bg:#0b0f0d;--p:#121915;--p2:#18221c;--t:#eef6ef;--m:#9fb0a4;--a:#8ee06c;--l:#29362e;--w:#e7b85d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#16231a,#0b0f0d 45%);color:var(--t);font:15px system-ui}.wrap{max-width:1100px;margin:auto;padding:22px}h1{margin:0}.tag{color:var(--a)}.sub,small{color:var(--m)}.games{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}.game,.pill{border:1px solid var(--l);background:var(--p);color:var(--t);padding:9px 12px;border-radius:12px}.active{border-color:var(--a)}.locked{opacity:.45}.hero,.card{background:var(--p);border:1px solid var(--l);border-radius:18px}.hero{padding:22px;display:grid;grid-template-columns:1.5fr 1fr;gap:20px}.hero h2{font-size:30px;margin:8px 0}.stats,.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.stat{background:var(--p2);padding:14px;border-radius:14px}.stat b{display:block;color:var(--a);font-size:23px}.grid{margin-top:14px}.card{padding:18px}.item{padding:11px 0;border-top:1px solid var(--l)}.search{width:100%;padding:12px;border:1px solid var(--l);border-radius:11px;background:#0c120e;color:white;margin-top:10px}.progress{height:8px;background:#263129;border-radius:99px;overflow:hidden}.bar{height:100%;background:var(--a)}.warn{color:var(--w);font-size:12px}.footer{text-align:center;color:var(--m);padding:25px 0;font-size:12px}@media(max-width:720px){.hero,.grid{grid-template-columns:1fr}}
-</style></head><body><div class="wrap">
-<h1>Survival <span class="tag">Vault</span></h1><p class="sub">One companion for the survival games that eat your entire weekend.</p>
-<div class="games"><button class="game active">ICARUS</button><button class="game locked">ARK: Survival Ascended 🔒</button><button class="game locked">Enshrouded 🔒</button><button class="game locked">Valheim 🔒</button><button class="game locked">7 Days to Die 🔒</button></div>
-<section class="hero"><div><span class="pill">GAME HUB</span><h2>ICARUS</h2><p class="sub">Crafting, progression, bestiary guidance, calculators and checklists.</p><input id="search" class="search" placeholder="Search — try tier 2, anvil, bear..."></div><div class="stats"><div class="stat"><b id="done">0%</b>Checklist</div><div class="stat"><b>20+</b>References</div><div class="stat"><b>6</b>Sections</div><div class="stat"><b>∞</b>Games to add</div></div></section>
-<div class="grid">
-<section class="card searchable"><h3>⚒️ Tech & Crafting</h3><div class="item" data-text="tier 1 tools survival"><b>Tier 1 — Hand Crafting</b><br><small>Foundational tools, weapons and shelter.</small></div><div class="item" data-text="tier 2 level 10 crafting bench furnace anvil mortar"><b>Tier 2 — Crafting Bench</b><br><small>Level 10 · furnaces and specialized stations.</small></div><div class="item" data-text="tier 3 level 20 machining concrete firearms"><b>Tier 3 — Machining Bench</b><br><small>Level 20 · advanced processing and firearms.</small></div><div class="item" data-text="tier 4 level 30 fabricator electricity titanium"><b>Tier 4 — Fabricator</b><br><small>Level 30 · electricity and advanced manufacturing.</small></div><div class="item" data-text="tier 5 level 40 manufacturer"><b>Tier 5 — Manufacturer</b><br><small>Level 40 · late-game technology.</small></div></section>
-<section class="card"><h3>📈 Progression</h3><div id="checks"><label class="item"><input type="checkbox"> Establish basics</label><label class="item"><input type="checkbox"> Reach Tier 2</label><label class="item"><input type="checkbox"> Push toward Tier 3</label><label class="item"><input type="checkbox"> Build permanent setup</label></div><div class="progress"><div class="bar" id="bar"></div></div></section>
-<section class="card"><h3>🧮 Resource Calculator</h3><p class="sub">Ranching Station quantity</p><input id="qty" class="search" type="number" min="1" value="1"><div class="item"><b id="calc"></b></div></section>
-<section class="card" style="grid-column:1/-1"><h3>🐾 Bestiary & Locations</h3><p class="sub">Suggested levels are Survival Vault preparation recommendations, not official ICARUS requirements.</p><select id="map" class="search"><option>Olympus</option><option>Styx</option><option>Prometheus</option><option>Elysium</option></select><input id="lvl" class="search" type="number" min="0" max="60" value="10" placeholder="Player level"><div id="beasts"></div><p class="warn">⚠️ Gear, talents, difficulty and creature level matter more than player level alone.</p></section>
-<section class="card"><h3>🗺️ Roadmap</h3><div class="item"><b>ICARUS</b> — active</div><div class="item"><b>ARK: Survival Ascended</b> — next</div><div class="item">Enshrouded · Valheim · 7 Days to Die — queued</div></section>
-<section class="card"><h3>📝 My Next Drop</h3><textarea id="notes" class="search" style="min-height:120px" placeholder="Mine iron, unlock bench..."></textarea></section>
-</div><div class="footer">Unofficial fan-made companion. Game names belong to their respective owners.</div></div>
-<script>
-const boxes=[...document.querySelectorAll('#checks input')];function prog(){let n=boxes.filter(x=>x.checked).length/boxes.length*100;bar.style.width=n+'%';done.textContent=Math.round(n)+'%';localStorage.setItem('svc',JSON.stringify(boxes.map(x=>x.checked)))}try{let a=JSON.parse(localStorage.getItem('svc')||'[]');boxes.forEach((x,i)=>x.checked=!!a[i])}catch(e){}boxes.forEach(x=>x.onchange=prog);prog();
-function calcit(){let n=Math.max(1,+qty.value||1);calc.textContent=`${10*n} Rope · ${30*n} Wood · ${20*n} Leather · ${10*n} Fur · ${15*n} Iron Nails`}qty.oninput=calcit;calcit();
-notes.value=localStorage.getItem('svn')||'';notes.oninput=()=>localStorage.setItem('svn',notes.value);
-search.oninput=()=>document.querySelectorAll('.searchable .item').forEach(x=>x.style.display=x.dataset.text.includes(search.value.toLowerCase())?'block':'none');
-const data=[['Bear',['Olympus','Styx'],10,'High','Forest regions'],['Polar Bear',['Olympus','Styx','Prometheus','Elysium'],20,'Extreme','Arctic / cold regions'],['Jaguar',['Styx','Prometheus'],10,'High','Forest / wetland regions'],['Scorpion',['Olympus','Styx','Elysium'],15,'High','Desert / dry regions'],['Giant Scorpion',['Olympus','Styx'],25,'Boss','World-boss areas']];
-function render(){let m=map.value,l=+lvl.value||0;beasts.innerHTML=data.filter(x=>x[1].includes(m)).map(x=>`<div class="item"><b>${x[0]}</b> <span class="pill">${x[3]}</span><br><small>${x[4]}</small><br>Suggested level: <b>${x[2]}+</b> · ${l>=x[2]?'✅ Prepared range':l>=x[2]-5?'⚠️ Challenging':'☠️ Gear up first'}</div>`).join('')}map.onchange=render;lvl.oninput=render;render();
-</script></body></html> <!-- rebuild --> index.html
 
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta name="theme-color" content="#0b0f0d">
+
+<title>Survival Vault — ICARUS Companion</title>
+
+<style>
+
+:root{
+
+ --bg:#0b0f0d;--p:#121915;--p2:#18221c;--t:#eef6ef;
+
+ --m:#9fb0a4;--a:#8ee06c;--l:#29362e;--w:#e7b85d
+
+}
+
+*{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+
+body{
+
+ margin:0;
+
+ background:radial-gradient(circle at top,#16231a,#0b0f0d 45%);
+
+ color:var(--t);
+
+ font:15px system-ui,-apple-system,sans-serif
+
+}
+
+.wrap{max-width:1150px;margin:auto;padding:20px}
+
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+
+h1{margin:0}
+
+.tag{color:var(--a)}
+
+.sub,small{color:var(--m)}
+
+a{color:var(--a)}
+
+button,select,input,textarea{font:inherit}
+
+.games,.filters,.ranklegend{
+
+ display:flex;gap:8px;flex-wrap:wrap;margin:18px 0
+
+}
+
+.game,.pill{
+
+ border:1px solid var(--l);
+
+ background:var(--p);
+
+ color:var(--t);
+
+ padding:9px 12px;
+
+ border-radius:12px
+
+}
+
+.active{border-color:var(--a)}
+
+.locked{opacity:.45}
+
+.hero,.card{
+
+ background:var(--p);
+
+ border:1px solid var(--l);
+
+ border-radius:18px
+
+}
+
+.hero{
+
+ padding:22px;
+
+ display:grid;
+
+ grid-template-columns:1.4fr 1fr;
+
+ gap:20px
+
+}
+
+.hero h2{font-size:30px;margin:8px 0}
+
+.stats,.grid{
+
+ display:grid;
+
+ grid-template-columns:repeat(2,1fr);
+
+ gap:12px
+
+}
+
+.stat{
+
+ background:var(--p2);
+
+ padding:14px;
+
+ border-radius:14px
+
+}
+
+.stat b{
+
+ display:block;
+
+ color:var(--a);
+
+ font-size:23px
+
+}
+
+.grid{margin-top:14px}
+
+.card{padding:18px}
+
+.wide{grid-column:1/-1}
+
+.item{
+
+ padding:12px 0;
+
+ border-top:1px solid var(--l)
+
+}
+
+.search{
+
+ width:100%;
+
+ padding:12px;
+
+ border:1px solid var(--l);
+
+ border-radius:11px;
+
+ background:#0c120e;
+
+ color:white;
+
+ margin-top:10px
+
+}
+
+.progress{
+
+ height:8px;
+
+ background:#263129;
+
+ border-radius:99px;
+
+ overflow:hidden
+
+}
+
+.bar{height:100%;background:var(--a)}
+
+.warn{color:var(--w);font-size:12px}
+
+.mapbox{
+
+ border:1px solid var(--l);
+
+ border-radius:16px;
+
+ padding:16px;
+
+ background:linear-gradient(145deg,#101812,#18251b);
+
+ min-height:220px;
+
+ position:relative;
+
+ overflow:hidden
+
+}
+
+.mapgrid{
+
+ position:absolute;
+
+ inset:0;
+
+ opacity:.18;
+
+ background-image:
+
+ linear-gradient(var(--a) 1px,transparent 1px),
+
+ linear-gradient(90deg,var(--a) 1px,transparent 1px);
+
+ background-size:32px 32px
+
+}
+
+.mapcontent{position:relative;z-index:1}
+
+.maptitle{font-size:24px;font-weight:800}
+
+.mapstats{
+
+ display:grid;
+
+ grid-template-columns:repeat(4,1fr);
+
+ gap:8px;
+
+ margin:14px 0
+
+}
+
+.mini{
+
+ background:#0d140f;
+
+ border:1px solid var(--l);
+
+ border-radius:12px;
+
+ padding:10px
+
+}
+
+.mini b{
+
+ display:block;
+
+ color:var(--a);
+
+ font-size:19px
+
+}
+
+.cavelist{
+
+ display:grid;
+
+ grid-template-columns:repeat(2,1fr);
+
+ gap:10px;
+
+ margin-top:14px
+
+}
+
+.cave{
+
+ background:var(--p2);
+
+ border:1px solid var(--l);
+
+ border-radius:14px;
+
+ padding:13px
+
+}
+
+.cavehead{
+
+ display:flex;
+
+ justify-content:space-between;
+
+ gap:8px;
+
+ align-items:center
+
+}
+
+.rank{
+
+ font-weight:800;
+
+ border-radius:999px;
+
+ padding:4px 8px;
+
+ font-size:12px
+
+}
+
+.r1{background:#1d4f2c}
+
+.r2{background:#365b25}
+
+.r3{background:#6b5c1e}
+
+.r4{background:#743d20}
+
+.r5{background:#6d2222}
+
+.chips{
+
+ display:flex;
+
+ gap:6px;
+
+ flex-wrap:wrap;
+
+ margin-top:8px
+
+}
+
+.chip{
+
+ font-size:11px;
+
+ border:1px solid var(--l);
+
+ border-radius:999px;
+
+ padding:4px 7px;
+
+ color:var(--m)
+
+}
+
+.btn{
+
+ display:inline-block;
+
+ text-decoration:none;
+
+ background:var(--a);
+
+ color:#081009;
+
+ font-weight:800;
+
+ padding:10px 13px;
+
+ border-radius:11px
+
+}
+
+.note{
+
+ padding:12px;
+
+ border-left:3px solid var(--w);
+
+ background:#17170f;
+
+ border-radius:8px
+
+}
+
+.hidden{display:none!important}
+
+.footer{
+
+ text-align:center;
+
+ color:var(--m);
+
+ padding:25px 0;
+
+ font-size:12px
+
+}
+
+@media(max-width:720px){
+
+ .hero,.grid{grid-template-columns:1fr}
+
+ .wide{grid-column:auto}
+
+ .stats{grid-template-columns:repeat(2,1fr)}
+
+ .mapstats{grid-template-columns:repeat(2,1fr)}
+
+ .cavelist{grid-template-columns:1fr}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="top">
+
+ <div>
+
+  <h1>Survival <span class="tag">Vault</span></h1>
+
+  <div class="sub">One companion for the survival games that eat your entire weekend.</div>
+
+ </div>
+
+ <span class="pill">ICARUS HUB v2</span>
+
+</div>
+
+<div class="games">
+
+ <button class="game active">ICARUS</button>
+
+ <button class="game locked">ARK: Survival Ascended 🔒</button>
+
+ <button class="game locked">Enshrouded 🔒</button>
+
+ <button class="game locked">Valheim 🔒</button>
+
+ <button class="game locked">7 Days to Die 🔒</button>
+
+</div>
+
+<section class="hero">
+
+<div>
+
+ <span class="pill">GAME HUB</span>
+
+ <h2>ICARUS</h2>
+
+ <p class="sub">
+
+ Progression, cave planning, survival ranks, bestiary guidance,
+
+ calculators and checklists.
+
+ </p>
+
+ <input id="globalSearch" class="search"
+
+ placeholder="Search — cave ID, bear, tier 3...">
+
+</div>
+
+<div class="stats">
+
+ <div class="stat"><b id="done">0%</b>Checklist</div>
+
+ <div class="stat"><b>766</b>Mapped caves</div>
+
+ <div class="stat"><b>4</b>World maps</div>
+
+ <div class="stat"><b>5</b>Prep ranks</div>
+
+</div>
+
+</section>
+
+<div class="grid">
+
+<section class="card">
+
+<h3>⚒️ Tech & Crafting</h3>
+
+<div class="item" data-search="tier 1 tools survival">
+
+<b>Tier 1 — Hand Crafting</b><br>
+
+<small>Foundational tools, weapons and shelter.</small>
+
+</div>
+
+<div class="item" data-search="tier 2 level 10 crafting bench furnace anvil mortar">
+
+<b>Tier 2 — Crafting Bench</b><br>
+
+<small>Level 10 · furnaces and specialized stations.</small>
+
+</div>
+
+<div class="item" data-search="tier 3 level 20 machining concrete firearms">
+
+<b>Tier 3 — Machining Bench</b><br>
+
+<small>Level 20 · advanced processing and firearms.</small>
+
+</div>
+
+<div class="item" data-search="tier 4 level 30 fabricator electricity titanium">
+
+<b>Tier 4 — Fabricator</b><br>
+
+<small>Level 30 · electricity and advanced manufacturing.</small>
+
+</div>
+
+<div class="item" data-search="tier 5 level 40 manufacturer">
+
+<b>Tier 5 — Manufacturer</b><br>
+
+<small>Level 40 · late-game technology.</small>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h3>📈 Progression</h3>
+
+<div id="checks">
+
+<label class="item">
+
+<input type="checkbox"> Establish basics
+
+</label><br>
+
+<label class="item">
+
+<input type="checkbox"> Reach Tier 2
+
+</label><br>
+
+<label class="item">
+
+<input type="checkbox"> Push toward Tier 3
+
+</label><br>
+
+<label class="item">
+
+<input type="checkbox"> Build permanent setup
+
+</label>
+
+</div>
+
+<br>
+
+<div class="progress">
+
+<div class="bar" id="bar"></div>
+
+</div>
+
+</section>
+
+<section class="card wide">
+
+<h3>🗺️ Cave & Map Explorer</h3>
+
+<p class="sub">
+
+Choose a world and filter caves. Use the detailed map for exact
+
+entrance locations and coordinates.
+
+</p>
+
+<div class="filters">
+
+<select id="world" class="game">
+
+<option>Olympus</option>
+
+<option>Styx</option>
+
+<option>Prometheus</option>
+
+<option>Elysium</option>
+
+</select>
+
+<select id="caveFilter" class="game">
+
+<option value="all">All caves</option>
+
+<option value="water">Water caves</option>
+
+<option value="deep">Deep ore caves</option>
+
+<option value="small">Small caves</option>
+
+<option value="medium">Medium caves</option>
+
+</select>
+
+<input id="caveSearch" class="game"
+
+placeholder="Search cave ID e.g. B-7">
+
+</div>
+
+<div class="mapbox">
+
+<div class="mapgrid"></div>
+
+<div class="mapcontent">
+
+<div class="maptitle" id="mapTitle">Olympus</div>
+
+<div class="sub" id="mapDesc"></div>
+
+<div class="mapstats">
+
+<div class="mini">
+
+<b id="totalCaves"></b>
+
+Caves
+
+</div>
+
+<div class="mini">
+
+<b id="deepCaves"></b>
+
+Deep ore
+
+</div>
+
+<div class="mini">
+
+<b id="waterCaves"></b>
+
+Water
+
+</div>
+
+<div class="mini">
+
+<b id="mapRank"></b>
+
+World prep
+
+</div>
+
+</div>
+
+<a id="mapLink"
+
+class="btn"
+
+target="_blank"
+
+rel="noopener">
+
+OPEN DETAILED MAP
+
+</a>
+
+</div>
+
+</div>
+
+<div class="ranklegend">
+
+<span class="rank r1">R1 Starter</span>
+
+<span class="rank r2">R2 Prepared</span>
+
+<span class="rank r3">R3 Dangerous</span>
+
+<span class="rank r4">R4 Severe</span>
+
+<span class="rank r5">R5 Extreme</span>
+
+</div>
+
+<div class="note">
+
+<b>Survival Vault Rank</b> is our preparation rating,
+
+not an official ICARUS level requirement.
+
+Gear, talents, creature level and difficulty can change the real danger.
+
+</div>
+
+<div id="caves" class="cavelist"></div>
+
+</section>
+
+<section class="card wide">
+
+<h3>🐾 Bestiary & Suggested Preparation</h3>
+
+<select id="beastMap" class="search">
+
+<option>Olympus</option>
+
+<option>Styx</option>
+
+<option>Prometheus</option>
+
+<option>Elysium</option>
+
+</select>
+
+<input id="lvl"
+
+class="search"
+
+type="number"
+
+min="0"
+
+max="60"
+
+value="10"
+
+placeholder="Player level">
+
+<div id="beasts"></div>
+
+<p class="warn">
+
+⚠️ Suggested levels are Survival Vault guidance,
+
+not official requirements.
+
+</p>
+
+</section>
+
+<section class="card">
+
+<h3>🧮 Resource Calculator</h3>
+
+<p class="sub">Ranching Station quantity</p>
+
+<input id="qty"
+
+class="search"
+
+type="number"
+
+min="1"
+
+value="1">
+
+<div class="item">
+
+<b id="calc"></b>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h3>📝 My Next Drop</h3>
+
+<textarea
+
+id="notes"
+
+class="search"
+
+style="min-height:120px"
+
+placeholder="Mine iron, check B-7, unlock bench..."></textarea>
+
+</section>
+
+</div>
+
+<div class="footer">
+
+Unofficial fan-made companion.
+
+Game names belong to their respective owners.
+
+</div>
+
+</div>
+
+<script>
+
+const mapInfo={
+
+Olympus:{
+
+ total:142,
+
+ deep:85,
+
+ water:116,
+
+ rank:2,
+
+ desc:"The original prospecting world with Forest, Desert and Arctic biomes.",
+
+ url:"https://icarusmap.net/maps/olympus"
+
+},
+
+Styx:{
+
+ total:163,
+
+ deep:93,
+
+ water:128,
+
+ rank:3,
+
+ desc:"A tougher world with Arctic, Desert and Forest regions.",
+
+ url:"https://icarusmap.net/maps/styx"
+
+},
+
+Prometheus:{
+
+ total:237,
+
+ deep:170,
+
+ water:80,
+
+ rank:4,
+
+ desc:"New Frontiers world with grassland, forest, swamp, volcanic and arctic regions.",
+
+ url:"https://icarusmap.net/maps/prometheus"
+
+},
+
+Elysium:{
+
+ total:224,
+
+ deep:187,
+
+ water:92,
+
+ rank:3,
+
+ desc:"Large cave network with extensive deep-ore coverage.",
+
+ url:"https://icarusmap.net/maps/elysium"
+
+}
+
+};
+
+const caveData={
+
+Olympus:[
+
+{id:"B-0",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-1",size:"small",water:true,deep:1,ore:null},
+
+{id:"B-2",size:"small",water:false,deep:0,ore:23},
+
+{id:"B-3",size:"small",water:true,deep:1,ore:null},
+
+{id:"B-4",size:"small",water:true,deep:1,ore:null},
+
+{id:"B-5",size:"small",water:true,deep:0,ore:26},
+
+{id:"B-6",size:"small",water:true,deep:1,ore:null},
+
+{id:"B-7",size:"small",water:false,deep:0,ore:23},
+
+{id:"B-8",size:"small",water:true,deep:1,ore:null},
+
+{id:"B-9",size:"small",water:true,deep:1,ore:null}
+
+],
+
+Styx:[
+
+{id:"B-0",size:"small",water:false,deep:0,ore:32},
+
+{id:"B-1",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-2",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-3",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-4",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-5",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-6",size:"small",water:false,deep:0,ore:21},
+
+{id:"B-7",size:"medium",water:false,deep:2,ore:null},
+
+{id:"B-8",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-9",size:"small",water:true,deep:0,ore:23},
+
+{id:"B-10",size:"small",water:true,deep:0,ore:26},
+
+{id:"B-11",size:"medium",water:true,deep:2,ore:null}
+
+],
+
+Prometheus:[
+
+{id:"B-32",size:"medium",water:false,deep:2,ore:null},
+
+{id:"B-33",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-34",size:"small",water:false,deep:0,ore:null},
+
+{id:"B-35",size:"medium",water:false,deep:2,ore:null}
+
+],
+
+Elysium:[
+
+{id:"B-0",size:"medium",water:false,deep:1,ore:null},
+
+{id:"B-2",size:"medium",water:false,deep:2,ore:null},
+
+{id:"B-4",size:"small",water:false,deep:1,ore:null},
+
+{id:"B-5",size:"small",water:false,deep:1,ore:null},
+
+{id:"B-6",size:"medium",water:false,deep:2,ore:null},
+
+{id:"B-7",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-22",size:"medium",water:false,deep:2,ore:null},
+
+{id:"B-23",size:"medium",water:false,deep:2,ore:null},
+
+{id:"B-30",size:"small",water:false,deep:0,ore:30},
+
+{id:"B-57",size:"medium",water:true,deep:2,ore:null},
+
+{id:"B-61",size:"medium",water:true,deep:0,ore:63},
+
+{id:"B-62",size:"medium",water:false,deep:0,ore:100}
+
+]
+
+};
+
+function rankFor(c,w){
+
+let r=mapInfo[w].rank;
+
+if(c.size==="medium")r++;
+
+if(c.water)r++;
+
+if(c.deep>=2)r++;
+
+return Math.min(5,Math.max(1,r-1));
+
+}
+
+function renderMap(){
+
+const w=world.value;
+
+const info=mapInfo[w];
+
+const f=caveFilter.value;
+
+const q=caveSearch.value.trim().toLowerCase();
+
+mapTitle.textContent=w;
+
+mapDesc.textContent=info.desc;
+
+totalCaves.textContent=info.total;
+
+deepCaves.textContent=info.deep;
+
+waterCaves.textContent=info.water;
+
+mapRank.textContent="R"+info.rank;
+
+mapLink.href=info.url;
+
+let arr=(caveData[w]||[]).filter(c=>{
+
+if(q&&!c.id.toLowerCase().includes(q))return false;
+
+if(f==="water"&&!c.water)return false;
+
+if(f==="deep"&&!c.deep)return false;
+
+if(f==="small"&&c.size!=="small")return false;
+
+if(f==="medium"&&c.size!=="medium")return false;
+
+return true;
+
+});
+
+caves.innerHTML=arr.length
+
+?
+
+arr.map(c=>{
+
+const r=rankFor(c,w);
+
+return `
+
+<div class="cave"
+
+data-search="${w} ${c.id} ${c.size}">
+
+<div class="cavehead">
+
+<b>${c.id}</b>
+
+<span class="rank r${r}">R${r}</span>
+
+</div>
+
+<div class="chips">
+
+<span class="chip">
+
+${c.size.toUpperCase()}
+
+</span>
+
+${c.water
+
+?'<span class="chip">💧 WATER</span>'
+
+:''}
+
+${c.deep
+
+?`<span class="chip">⛏️ DEEP ORE ×${c.deep}</span>`
+
+:''}
+
+${c.ore
+
+?`<span class="chip">🪨 ORE ~${c.ore}</span>`
+
+:''}
+
+</div>
+
+<small>
+
+Use Detailed Map for exact grid / entrance position.
+
+</small>
+
+</div>
+
+`;
+
+}).join("")
+
+:
+
+`<div class="sub">
+
+No sample caves match this filter.
+
+Open the detailed map for the complete ${info.total}-cave database.
+
+</div>`;
+
+}
+
+world.onchange=renderMap;
+
+caveFilter.onchange=renderMap;
+
+caveSearch.oninput=renderMap;
+
+renderMap();
+
+const beastData=[
+
+["Bear",
+
+["Olympus","Styx"],
+
+10,
+
+"High",
+
+"Forest regions"],
+
+["Polar Bear",
+
+["Olympus","Styx","Prometheus","Elysium"],
+
+20,
+
+"Extreme",
+
+"Arctic / cold regions"],
+
+["Jaguar",
+
+["Styx","Prometheus"],
+
+10,
+
+"High",
+
+"Forest / wetland regions"],
+
+["Scorpion",
+
+["Olympus","Styx","Elysium"],
+
+15,
+
+"High",
+
+"Desert / dry regions"],
+
+["Giant Scorpion",
+
+["Olympus","Styx"],
+
+25,
+
+"Boss",
+
+"World-boss areas"]
+
+];
+
+function renderBeasts(){
+
+let m=beastMap.value;
+
+let l=+lvl.value||0;
+
+beasts.innerHTML=beastData
+
+.filter(x=>x[1].includes(m))
+
+.map(x=>`
+
+<div class="item"
+
+data-search="${x[0]} ${m}">
+
+<b>${x[0]}</b>
+
+<span class="pill">${x[3]}</span>
+
+<br>
+
+<small>${x[4]}</small>
+
+<br>
+
+Suggested level:
+
+<b>${x[2]}+</b>
+
+·
+
+${l>=x[2]
+
+?'✅ Prepared range'
+
+:l>=x[2]-5
+
+?'⚠️ Challenging'
+
+:'☠️ Gear up first'}
+
+</div>
+
+`).join("");
+
+}
+
+beastMap.onchange=renderBeasts;
+
+lvl.oninput=renderBeasts;
+
+renderBeasts();
+
+const boxes=[
+
+...document.querySelectorAll("#checks input")
+
+];
+
+function prog(){
+
+let n=
+
+boxes.filter(x=>x.checked).length
+
+/
+
+boxes.length
+
+*
+
+100;
+
+bar.style.width=n+"%";
+
+done.textContent=Math.round(n)+"%";
+
+localStorage.setItem(
+
+"svc",
+
+JSON.stringify(
+
+boxes.map(x=>x.checked)
+
+)
+
+);
+
+}
+
+try{
+
+let a=
+
+JSON.parse(
+
+localStorage.getItem("svc")||"[]"
+
+);
+
+boxes.forEach(
+
+(x,i)=>x.checked=!!a[i]
+
+);
+
+}catch(e){}
+
+boxes.forEach(
+
+x=>x.onchange=prog
+
+);
+
+prog();
+
+function calcit(){
+
+let n=
+
+Math.max(
+
+1,
+
++qty.value||1
+
+);
+
+calc.textContent=
+
+`${10*n} Rope ·
+
+${30*n} Wood ·
+
+${20*n} Leather ·
+
+${10*n} Fur ·
+
+${15*n} Iron Nails`;
+
+}
+
+qty.oninput=calcit;
+
+calcit();
+
+notes.value=
+
+localStorage.getItem("svn")||"";
+
+notes.oninput=()=>{
+
+localStorage.setItem(
+
+"svn",
+
+notes.value
+
+);
+
+};
+
+globalSearch.oninput=()=>{
+
+const q=
+
+globalSearch.value
+
+.toLowerCase()
+
+.trim();
+
+document
+
+.querySelectorAll("[data-search]")
+
+.forEach(x=>
+
+x.classList.toggle(
+
+"hidden",
+
+q &&
+
+!x.dataset.search
+
+.toLowerCase()
+
+.includes(q)
+
+)
+
+);
+
+};
+
+</script>
+
+</body>
+
+</html>
