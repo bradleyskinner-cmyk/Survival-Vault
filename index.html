@@ -22,5 +22,5 @@ notes.value=localStorage.getItem('svn')||'';notes.oninput=()=>localStorage.setIt
 search.oninput=()=>document.querySelectorAll('.searchable .item').forEach(x=>x.style.display=x.dataset.text.includes(search.value.toLowerCase())?'block':'none');
 const data=[['Bear',['Olympus','Styx'],10,'High','Forest regions'],['Polar Bear',['Olympus','Styx','Prometheus','Elysium'],20,'Extreme','Arctic / cold regions'],['Jaguar',['Styx','Prometheus'],10,'High','Forest / wetland regions'],['Scorpion',['Olympus','Styx','Elysium'],15,'High','Desert / dry regions'],['Giant Scorpion',['Olympus','Styx'],25,'Boss','World-boss areas']];
 function render(){let m=map.value,l=+lvl.value||0;beasts.innerHTML=data.filter(x=>x[1].includes(m)).map(x=>`<div class="item"><b>${x[0]}</b> <span class="pill">${x[3]}</span><br><small>${x[4]}</small><br>Suggested level: <b>${x[2]}+</b> · ${l>=x[2]?'✅ Prepared range':l>=x[2]-5?'⚠️ Challenging':'☠️ Gear up first'}</div>`).join('')}map.onchange=render;lvl.oninput=render;render();
-</script></body></html> <!-- rebuild -->index.html
+</script></body></html> <!-- rebuild --> index.html
 
